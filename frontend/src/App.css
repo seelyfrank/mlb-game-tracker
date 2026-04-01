@@ -1,0 +1,166 @@
+.app-shell {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 20px;
+}
+
+.app-header h1 {
+  margin: 0 0 10px;
+}
+
+.app-header p {
+  margin: 0;
+  color: #56606f;
+}
+
+.app-header button {
+  border: 1px solid #95a3b8;
+  background: #fff;
+  color: #1f2937;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.app-header button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.top-meta {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 14px;
+  color: #3f4a5e;
+}
+
+.player-list {
+  display: grid;
+  gap: 18px;
+}
+
+.player-card {
+  border: 1px solid #d7deea;
+  border-radius: 14px;
+  padding: 18px;
+  background: #f8fafc;
+}
+
+.player-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.player-header h2 {
+  margin: 0;
+}
+
+.player-header p {
+  margin: 0;
+  color: #4a566d;
+}
+
+.teams {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.team-card {
+  border: 1px solid #e1e6ef;
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.team-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.team-title-row h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.team-code {
+  background: #edf2f7;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.run-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.run-cell {
+  border: 1px solid #ced8e6;
+  border-radius: 7px;
+  text-align: center;
+  font-weight: 700;
+  color: #4e5a71;
+  padding: 8px 4px;
+  background: #f8fbff;
+}
+
+.run-cell.hit {
+  background: #16a34a;
+  border-color: #15803d;
+  color: #fff;
+}
+
+.counts,
+.meta,
+.state {
+  margin: 0;
+}
+
+.counts {
+  color: #1f2937;
+}
+
+.meta {
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 0.92rem;
+}
+
+.state {
+  color: #334155;
+}
+
+.state.error {
+  color: #b91c1c;
+}
+
+@media (max-width: 820px) {
+  .app-shell {
+    padding: 16px;
+  }
+
+  .app-header,
+  .player-header,
+  .top-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
