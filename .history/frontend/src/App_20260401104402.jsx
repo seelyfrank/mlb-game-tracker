@@ -72,11 +72,6 @@ function ProgressDistribution({ players }) {
     });
     return buckets;
   }, [players]);
-  const maxBucketSize = useMemo(
-    () => Math.max(1, ...scoreBuckets.map((bucket) => bucket.players.length)),
-    [scoreBuckets]
-  );
-  const plotStyle = { "--max-stack": maxBucketSize };
 
   return (
     <section className="distribution-card">
@@ -85,12 +80,7 @@ function ProgressDistribution({ players }) {
         <p>Players are stacked under the same top score. Hover or click a box for name.</p>
       </div>
       <div className="distribution-body">
-        <div
-          className="distribution-plot"
-          style={plotStyle}
-          role="img"
-          aria-label="Top score histogram by player"
-        >
+        <div className="distribution-plot" role="img" aria-label="Top score histogram by player">
           {scoreBuckets.map((bucket) => (
             <div key={bucket.score} className="distribution-column">
               <div className="distribution-stack">

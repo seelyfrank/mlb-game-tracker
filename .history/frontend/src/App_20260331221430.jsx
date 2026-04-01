@@ -5,6 +5,26 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, ""
 const SCOREBOARD_URL = API_BASE_URL
   ? `${API_BASE_URL}/api/scoreboard`
   : "/api/scoreboard";
+const TOTAL_TARGETS = 14;
+
+function getBestTeam(player) {
+  if (!player?.teams?.length) {
+    return null;
+  }
+
+  return player.teams.reduce((best, team) => {
+    if (!best) {
+      return team;
+    }
+    if (team.acquiredCount > best.acquiredCount) {
+      return team;
+    }
+    if (team.acquiredCount < best.acquiredCount) {
+      return best;
+    }
+    return team.name.localeCompare(best.name) < 0 ? team : best;
+  }, null);
+}
 
 function RunGrid({ targets, acquiredRuns }) {
   const acquired = useMemo(() => new Set(acquiredRuns), [acquiredRuns]);
@@ -36,21 +56,24 @@ function TeamCard({ team, targets }) {
         <strong>{team.acquiredCount}</strong> acquired,{" "}
         <strong>{team.neededCount}</strong> needed
       </p>
-      <p className="meta">{team.finalGamesTracked} games played</p>
+      <p className="meta">{team.finalGamesTracked} final games tracked</p>
     </article>
   );
 }
 
 function PlayerCard({ player, targets, place }) {
+  const bestTeam = getBestTeam(player);
+  const bestAcquired = bestTeam?.acquiredCount ?? 0;
+  const bestNeeded = TOTAL_TARGETS - bestAcquired;
+
   return (
     <section className="player-card">
       <span className="place-badge">#{place}</span>
       <header className="player-header">
         <h2>{player.name}</h2>
         <p>
-          Best single-team progress: <strong>{player.acquiredCount}/14</strong>{" "}
-          ({player.bestTeamCode || "N/A"}), <strong>{player.neededCount}</strong>{" "}
-          left to win
+          Best single-team progress: <strong>{bestAcquired}/{TOTAL_TARGETS}</strong>{" "}
+          ({bestTeam?.code || "N/A"}), <strong>{bestNeeded}</strong> left to win
         </p>
       </header>
       <div className="teams">
@@ -58,70 +81,6 @@ function PlayerCard({ player, targets, place }) {
           <TeamCard key={team.code} team={team} targets={targets} />
         ))}
       </div>
-    </section>
-  );
-}
-
-function ProgressDistribution({ players }) {
-  const [activePlayerName, setActivePlayerName] = useState("");
-  const scoreBuckets = useMemo(() => {
-    const buckets = Array.from({ length: 14 }, (_, score) => ({ score, players: [] }));
-    players.forEach((player) => {
-      const score = Math.max(0, Math.min(13, player.acquiredCount));
-      buckets[score].players.push(player);
-    });
-    return buckets;
-  }, [players]);
-  const maxBucketSize = useMemo(
-    () => Math.max(1, ...scoreBuckets.map((bucket) => bucket.players.length)),
-    [scoreBuckets]
-  );
-  const plotStyle = { "--max-stack": maxBucketSize };
-
-  return (
-    <section className="distribution-card">
-      <div className="distribution-head">
-        <h2>Score Distribution</h2>
-        <p>Players are stacked under the same top score. Hover or click a box for name.</p>
-      </div>
-      <div className="distribution-body">
-        <div
-          className="distribution-plot"
-          style={plotStyle}
-          role="img"
-          aria-label="Top score histogram by player"
-        >
-          {scoreBuckets.map((bucket) => (
-            <div key={bucket.score} className="distribution-column">
-              <div className="distribution-stack">
-                {bucket.players.map((player) => {
-                  const label = `${player.name}: ${player.acquiredCount}/14`;
-                  return (
-                    <button
-                      key={player.name}
-                      type="button"
-                      className="distribution-point"
-                      title={label}
-                      aria-label={label}
-                      onMouseEnter={() => setActivePlayerName(player.name)}
-                      onFocus={() => setActivePlayerName(player.name)}
-                      onClick={() => setActivePlayerName(player.name)}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="distribution-x-axis">
-          {scoreBuckets.map((bucket) => (
-            <span key={bucket.score}>{bucket.score}</span>
-          ))}
-        </div>
-      </div>
-      <p className="distribution-active-name">
-        {activePlayerName ? `Selected: ${activePlayerName}` : "Hover or click a point to see player name"}
-      </p>
     </section>
   );
 }
@@ -138,22 +97,32 @@ function App() {
     return data.players
       .slice()
       .sort((a, b) => {
-        if (b.acquiredCount !== a.acquiredCount) {
-          return b.acquiredCount - a.acquiredCount;
+        const aBest = getBestTeam(a);
+        const bBest = getBestTeam(b);
+        const aAcquired = aBest?.acquiredCount ?? 0;
+        const bAcquired = bBest?.acquiredCount ?? 0;
+
+        if (bAcquired !== aAcquired) {
+          return bAcquired - aAcquired;
         }
-        if (a.neededCount !== b.neededCount) {
-          return a.neededCount - b.neededCount;
+
+        const aNeeded = TOTAL_TARGETS - aAcquired;
+        const bNeeded = TOTAL_TARGETS - bAcquired;
+        if (aNeeded !== bNeeded) {
+          return aNeeded - bNeeded;
         }
         return a.name.localeCompare(b.name);
       });
   }, [data]);
-
   const rankedPlayersWithPlace = useMemo(() => {
     let lastScoreKey = "";
     let lastPlace = 0;
 
     return rankedPlayers.map((player, index) => {
-      const scoreKey = `${player.acquiredCount}-${player.neededCount}`;
+      const bestTeam = getBestTeam(player);
+      const acquired = bestTeam?.acquiredCount ?? 0;
+      const needed = TOTAL_TARGETS - acquired;
+      const scoreKey = `${acquired}-${needed}`;
       const place = scoreKey === lastScoreKey ? lastPlace : index + 1;
 
       lastScoreKey = scoreKey;
@@ -194,7 +163,7 @@ function App() {
     <main className="app-shell">
       <header className="app-header">
         <div>
-          <h1>13 Run Pool Stats</h1>
+          <h1>MLB 2026 Run Endings Tracker</h1>
           <p>
             Win condition: one single team must hit all run endings from 0 to 13.
             Green cells mark values that specific team has captured.
@@ -205,10 +174,7 @@ function App() {
         </button>
       </header>
 
-      {loading && <p className="state">
-        Loading game results... 
-        <br />
-        May take longer if booting for first time.</p>}
+      {loading && <p className="state">Loading live 2026 game results...</p>}
       {error && <p className="state error">{error}</p>}
 
       {data && !loading && !error && (
@@ -219,7 +185,6 @@ function App() {
             </p>
             <p>Last update: {new Date(data.updatedAt).toLocaleString()}</p>
           </section>
-          <ProgressDistribution players={rankedPlayers} />
           <section className="player-list">
             {rankedPlayersWithPlace.map(({ player, place }) => (
               <PlayerCard

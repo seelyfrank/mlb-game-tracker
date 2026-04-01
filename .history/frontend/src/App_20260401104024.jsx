@@ -36,7 +36,7 @@ function TeamCard({ team, targets }) {
         <strong>{team.acquiredCount}</strong> acquired,{" "}
         <strong>{team.neededCount}</strong> needed
       </p>
-      <p className="meta">{team.finalGamesTracked} games played</p>
+      <p className="meta">{team.finalGamesTracked} games tracked</p>
     </article>
   );
 }
@@ -58,70 +58,6 @@ function PlayerCard({ player, targets, place }) {
           <TeamCard key={team.code} team={team} targets={targets} />
         ))}
       </div>
-    </section>
-  );
-}
-
-function ProgressDistribution({ players }) {
-  const [activePlayerName, setActivePlayerName] = useState("");
-  const scoreBuckets = useMemo(() => {
-    const buckets = Array.from({ length: 14 }, (_, score) => ({ score, players: [] }));
-    players.forEach((player) => {
-      const score = Math.max(0, Math.min(13, player.acquiredCount));
-      buckets[score].players.push(player);
-    });
-    return buckets;
-  }, [players]);
-  const maxBucketSize = useMemo(
-    () => Math.max(1, ...scoreBuckets.map((bucket) => bucket.players.length)),
-    [scoreBuckets]
-  );
-  const plotStyle = { "--max-stack": maxBucketSize };
-
-  return (
-    <section className="distribution-card">
-      <div className="distribution-head">
-        <h2>Score Distribution</h2>
-        <p>Players are stacked under the same top score. Hover or click a box for name.</p>
-      </div>
-      <div className="distribution-body">
-        <div
-          className="distribution-plot"
-          style={plotStyle}
-          role="img"
-          aria-label="Top score histogram by player"
-        >
-          {scoreBuckets.map((bucket) => (
-            <div key={bucket.score} className="distribution-column">
-              <div className="distribution-stack">
-                {bucket.players.map((player) => {
-                  const label = `${player.name}: ${player.acquiredCount}/14`;
-                  return (
-                    <button
-                      key={player.name}
-                      type="button"
-                      className="distribution-point"
-                      title={label}
-                      aria-label={label}
-                      onMouseEnter={() => setActivePlayerName(player.name)}
-                      onFocus={() => setActivePlayerName(player.name)}
-                      onClick={() => setActivePlayerName(player.name)}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="distribution-x-axis">
-          {scoreBuckets.map((bucket) => (
-            <span key={bucket.score}>{bucket.score}</span>
-          ))}
-        </div>
-      </div>
-      <p className="distribution-active-name">
-        {activePlayerName ? `Selected: ${activePlayerName}` : "Hover or click a point to see player name"}
-      </p>
     </section>
   );
 }
@@ -219,7 +155,6 @@ function App() {
             </p>
             <p>Last update: {new Date(data.updatedAt).toLocaleString()}</p>
           </section>
-          <ProgressDistribution players={rankedPlayers} />
           <section className="player-list">
             {rankedPlayersWithPlace.map(({ player, place }) => (
               <PlayerCard

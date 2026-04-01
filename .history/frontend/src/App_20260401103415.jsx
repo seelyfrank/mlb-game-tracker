@@ -36,7 +36,7 @@ function TeamCard({ team, targets }) {
         <strong>{team.acquiredCount}</strong> acquired,{" "}
         <strong>{team.neededCount}</strong> needed
       </p>
-      <p className="meta">{team.finalGamesTracked} games played</p>
+      <p className="meta">{team.finalGamesTracked} final games tracked</p>
     </article>
   );
 }
@@ -62,70 +62,6 @@ function PlayerCard({ player, targets, place }) {
   );
 }
 
-function ProgressDistribution({ players }) {
-  const [activePlayerName, setActivePlayerName] = useState("");
-  const scoreBuckets = useMemo(() => {
-    const buckets = Array.from({ length: 14 }, (_, score) => ({ score, players: [] }));
-    players.forEach((player) => {
-      const score = Math.max(0, Math.min(13, player.acquiredCount));
-      buckets[score].players.push(player);
-    });
-    return buckets;
-  }, [players]);
-  const maxBucketSize = useMemo(
-    () => Math.max(1, ...scoreBuckets.map((bucket) => bucket.players.length)),
-    [scoreBuckets]
-  );
-  const plotStyle = { "--max-stack": maxBucketSize };
-
-  return (
-    <section className="distribution-card">
-      <div className="distribution-head">
-        <h2>Score Distribution</h2>
-        <p>Players are stacked under the same top score. Hover or click a box for name.</p>
-      </div>
-      <div className="distribution-body">
-        <div
-          className="distribution-plot"
-          style={plotStyle}
-          role="img"
-          aria-label="Top score histogram by player"
-        >
-          {scoreBuckets.map((bucket) => (
-            <div key={bucket.score} className="distribution-column">
-              <div className="distribution-stack">
-                {bucket.players.map((player) => {
-                  const label = `${player.name}: ${player.acquiredCount}/14`;
-                  return (
-                    <button
-                      key={player.name}
-                      type="button"
-                      className="distribution-point"
-                      title={label}
-                      aria-label={label}
-                      onMouseEnter={() => setActivePlayerName(player.name)}
-                      onFocus={() => setActivePlayerName(player.name)}
-                      onClick={() => setActivePlayerName(player.name)}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="distribution-x-axis">
-          {scoreBuckets.map((bucket) => (
-            <span key={bucket.score}>{bucket.score}</span>
-          ))}
-        </div>
-      </div>
-      <p className="distribution-active-name">
-        {activePlayerName ? `Selected: ${activePlayerName}` : "Hover or click a point to see player name"}
-      </p>
-    </section>
-  );
-}
-
 function App() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -147,7 +83,7 @@ function App() {
         return a.name.localeCompare(b.name);
       });
   }, [data]);
-
+  
   const rankedPlayersWithPlace = useMemo(() => {
     let lastScoreKey = "";
     let lastPlace = 0;
@@ -194,7 +130,7 @@ function App() {
     <main className="app-shell">
       <header className="app-header">
         <div>
-          <h1>13 Run Pool Stats</h1>
+          <h1>MLB 2026 Run Endings Tracker</h1>
           <p>
             Win condition: one single team must hit all run endings from 0 to 13.
             Green cells mark values that specific team has captured.
@@ -205,10 +141,7 @@ function App() {
         </button>
       </header>
 
-      {loading && <p className="state">
-        Loading game results... 
-        <br />
-        May take longer if booting for first time.</p>}
+      {loading && <p className="state">Loading live 2026 game results...</p>}
       {error && <p className="state error">{error}</p>}
 
       {data && !loading && !error && (
@@ -219,7 +152,6 @@ function App() {
             </p>
             <p>Last update: {new Date(data.updatedAt).toLocaleString()}</p>
           </section>
-          <ProgressDistribution players={rankedPlayers} />
           <section className="player-list">
             {rankedPlayersWithPlace.map(({ player, place }) => (
               <PlayerCard
