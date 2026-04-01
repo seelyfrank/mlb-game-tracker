@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+const SCOREBOARD_URL = API_BASE_URL
+  ? `${API_BASE_URL}/api/scoreboard`
+  : "/api/scoreboard";
+
 function RunGrid({ targets, acquiredRuns }) {
   const acquired = useMemo(() => new Set(acquiredRuns), [acquiredRuns]);
 
@@ -65,7 +70,7 @@ function App() {
     setError("");
 
     try {
-      const response = await fetch("/api/scoreboard");
+      const response = await fetch(SCOREBOARD_URL);
       const payload = await response.json();
 
       if (!response.ok) {

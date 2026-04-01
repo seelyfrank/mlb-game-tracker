@@ -57,7 +57,7 @@ const PLAYERS = [
     teamCodes: ["LAD", "WSH"],
   },
   {
-    name: "McClain + Seely",
+    name: "Mcclain + Seely",
     teamCodes: ["NYM", "TOR"],
   },
   {
