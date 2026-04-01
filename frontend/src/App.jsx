@@ -62,12 +62,12 @@ function PlayerCard({ player, targets, place }) {
   );
 }
 
-function ProgressDistribution({ players }) {
+function ProgressDistribution({ players, winnerName }) {
   const [activePlayerName, setActivePlayerName] = useState("");
   const scoreBuckets = useMemo(() => {
-    const buckets = Array.from({ length: 14 }, (_, score) => ({ score, players: [] }));
+    const buckets = Array.from({ length: 15 }, (_, score) => ({ score, players: [] }));
     players.forEach((player) => {
-      const score = Math.max(0, Math.min(13, player.acquiredCount));
+      const score = Math.max(0, Math.min(14, player.acquiredCount));
       buckets[score].players.push(player);
     });
     return buckets;
@@ -85,6 +85,11 @@ function ProgressDistribution({ players }) {
         <p>Players are stacked under the same top score. Hover or click a box for name.</p>
       </div>
       <div className="distribution-body">
+        {winnerName && (
+          <div className="winner-overlay" role="status" aria-live="polite">
+            <strong>{winnerName}</strong> wins with 14/14
+          </div>
+        )}
         <div
           className="distribution-plot"
           style={plotStyle}
@@ -92,7 +97,10 @@ function ProgressDistribution({ players }) {
           aria-label="Top score histogram by player"
         >
           {scoreBuckets.map((bucket) => (
-            <div key={bucket.score} className="distribution-column">
+            <div
+              key={bucket.score}
+              className={`distribution-column ${bucket.score === 14 ? "win-column" : ""}`}
+            >
               <div className="distribution-stack">
                 {bucket.players.map((player) => {
                   const label = `${player.name}: ${player.acquiredCount}/14`;
@@ -115,7 +123,12 @@ function ProgressDistribution({ players }) {
         </div>
         <div className="distribution-x-axis">
           {scoreBuckets.map((bucket) => (
-            <span key={bucket.score}>{bucket.score}</span>
+            <span
+              key={bucket.score}
+              className={bucket.score === 14 ? "win-label" : ""}
+            >
+              {bucket.score}
+            </span>
           ))}
         </div>
       </div>
@@ -219,7 +232,7 @@ function App() {
             </p>
             <p>Last update: {new Date(data.updatedAt).toLocaleString()}</p>
           </section>
-          <ProgressDistribution players={rankedPlayers} />
+          <ProgressDistribution players={rankedPlayers} winnerName={data.winnerName} />
           <section className="player-list">
             {rankedPlayersWithPlace.map(({ player, place }) => (
               <PlayerCard

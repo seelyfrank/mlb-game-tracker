@@ -63,6 +63,7 @@
 
 .distribution-body {
   margin-top: 12px;
+  position: relative;
 }
 
 .distribution-plot {
@@ -88,17 +89,40 @@
       #e8eff8 44px
     );
   display: grid;
-  grid-template-columns: repeat(14, minmax(0, 1fr));
+  grid-template-columns: repeat(15, minmax(0, 1fr));
   gap: 6px;
   padding: 8px;
-  align-items: end;
   overflow: hidden;
+}
+
+.winner-overlay {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  background: #f59e0b;
+  color: #1f2937;
+  border: 1px solid #b45309;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 800;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
 }
 
 .distribution-column {
   min-width: 0;
   display: flex;
+  align-items: flex-end;
   justify-content: center;
+  height: 100%;
+  border-radius: 6px;
+}
+
+.distribution-column.win-column {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
 }
 
 .distribution-stack {
@@ -128,15 +152,24 @@
 .distribution-x-axis {
   margin-top: 8px;
   display: grid;
-  grid-template-columns: repeat(14, minmax(0, 1fr));
+  grid-template-columns: repeat(15, minmax(0, 1fr));
   gap: 6px;
+  padding: 0 8px;
   color: #64748b;
   font-size: 0.8rem;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .distribution-x-axis span {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.distribution-x-axis .win-label {
+  color: #92400e;
 }
 
 .distribution-active-name {

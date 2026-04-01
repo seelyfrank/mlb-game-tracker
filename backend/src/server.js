@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
 const { PLAYERS, TARGET_RUNS, TEAMS, SEASON } = require("./config");
 
 const app = express();
@@ -13,6 +15,63 @@ const mlbApi = axios.create({
   baseURL: "https://statsapi.mlb.com/api/v1",
   timeout: 15000,
 });
+const WINNER_STATE_PATH = path.join(__dirname, "winner-state.json");
+
+function readLockedWinnerName() {
+  try {
+    const raw = fs.readFileSync(WINNER_STATE_PATH, "utf8");
+    const parsed = JSON.parse(raw);
+    return typeof parsed?.winnerName === "string" && parsed.winnerName ? parsed.winnerName : "";
+  } catch (_error) {
+    return "";
+  }
+}
+
+function persistWinnerName(winnerName) {
+  try {
+    fs.writeFileSync(
+      WINNER_STATE_PATH,
+      JSON.stringify(
+        {
+          winnerName,
+          lockedAt: new Date().toISOString(),
+        },
+        null,
+        2
+      ),
+      "utf8"
+    );
+  } catch (error) {
+    console.error("Failed to persist winner state:", error.message);
+  }
+}
+
+function resolveLockedWinnerName(players) {
+  const existingWinnerName = readLockedWinnerName();
+  if (existingWinnerName) {
+    return existingWinnerName;
+  }
+
+  const winnerCandidate = players
+    .slice()
+    .sort((a, b) => {
+      if (b.acquiredCount !== a.acquiredCount) {
+        return b.acquiredCount - a.acquiredCount;
+      }
+      if (a.neededCount !== b.neededCount) {
+        return a.neededCount - b.neededCount;
+      }
+      return a.name.localeCompare(b.name);
+    })
+    .find((player) => player.acquiredCount >= 14);
+
+  if (!winnerCandidate) {
+    return "";
+  }
+
+  persistWinnerName(winnerCandidate.name);
+  return winnerCandidate.name;
+}
 
 function buildTeamProgress(teamCode, games) {
   const teamInfo = TEAMS[teamCode];
@@ -112,10 +171,13 @@ app.get("/api/scoreboard", async (_req, res) => {
       };
     });
 
+    const winnerName = resolveLockedWinnerName(players);
+
     res.json({
       season: SEASON,
       targets: TARGET_RUNS,
       updatedAt: new Date().toISOString(),
+      winnerName,
       players,
     });
   } catch (error) {
