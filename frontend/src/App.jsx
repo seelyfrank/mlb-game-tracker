@@ -41,14 +41,16 @@ function TeamCard({ team, targets }) {
   );
 }
 
-function PlayerCard({ player, targets }) {
+function PlayerCard({ player, targets, place }) {
   return (
     <section className="player-card">
+      <span className="place-badge">#{place}</span>
       <header className="player-header">
         <h2>{player.name}</h2>
         <p>
-          Combined progress: <strong>{player.acquiredCount}/14</strong> run endings,
-          <strong> {player.neededCount}</strong> left
+          Best single-team progress: <strong>{player.acquiredCount}/14</strong>{" "}
+          ({player.bestTeamCode || "N/A"}), <strong>{player.neededCount}</strong>{" "}
+          left to win
         </p>
       </header>
       <div className="teams">
@@ -64,6 +66,40 @@ function App() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const rankedPlayers = useMemo(() => {
+    if (!data?.players) {
+      return [];
+    }
+
+    return data.players
+      .slice()
+      .sort((a, b) => {
+        if (b.acquiredCount !== a.acquiredCount) {
+          return b.acquiredCount - a.acquiredCount;
+        }
+        if (a.neededCount !== b.neededCount) {
+          return a.neededCount - b.neededCount;
+        }
+        return a.name.localeCompare(b.name);
+      });
+  }, [data]);
+  const rankedPlayersWithPlace = useMemo(() => {
+    let lastScoreKey = "";
+    let lastPlace = 0;
+
+    return rankedPlayers.map((player, index) => {
+      const scoreKey = `${player.acquiredCount}-${player.neededCount}`;
+      const place = scoreKey === lastScoreKey ? lastPlace : index + 1;
+
+      lastScoreKey = scoreKey;
+      lastPlace = place;
+
+      return {
+        player,
+        place,
+      };
+    });
+  }, [rankedPlayers]);
 
   async function loadScoreboard() {
     setLoading(true);
@@ -95,8 +131,8 @@ function App() {
         <div>
           <h1>MLB 2026 Run Endings Tracker</h1>
           <p>
-            Hit every run ending from 0 to 13. Green cells mark values already
-            captured by a team.
+            Win condition: one single team must hit all run endings from 0 to 13.
+            Green cells mark values that specific team has captured.
           </p>
         </div>
         <button onClick={loadScoreboard} disabled={loading}>
@@ -116,8 +152,13 @@ function App() {
             <p>Last update: {new Date(data.updatedAt).toLocaleString()}</p>
           </section>
           <section className="player-list">
-            {data.players.map((player) => (
-              <PlayerCard key={player.name} player={player} targets={data.targets} />
+            {rankedPlayersWithPlace.map(({ player, place }) => (
+              <PlayerCard
+                key={player.name}
+                player={player}
+                targets={data.targets}
+                place={place}
+              />
             ))}
           </section>
         </>

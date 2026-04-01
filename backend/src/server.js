@@ -97,15 +97,18 @@ app.get("/api/scoreboard", async (_req, res) => {
       const teams = player.teamCodes.map((teamCode) =>
         buildTeamProgress(teamCode, teamGameMap[teamCode] || [])
       );
-
-      const mergedRuns = new Set(teams.flatMap((team) => team.acquiredRuns));
-      const totalAcquired = mergedRuns.size;
+      const bestTeam = teams.reduce((best, team) =>
+        !best || team.acquiredCount > best.acquiredCount ? team : best
+      , null);
+      const bestTeamAcquired = bestTeam ? bestTeam.acquiredCount : 0;
 
       return {
         name: player.name,
         teams,
-        acquiredCount: totalAcquired,
-        neededCount: TARGET_RUNS.length - totalAcquired,
+        acquiredCount: bestTeamAcquired,
+        neededCount: TARGET_RUNS.length - bestTeamAcquired,
+        bestTeamCode: bestTeam?.code || null,
+        bestTeamName: bestTeam?.name || null,
       };
     });
 

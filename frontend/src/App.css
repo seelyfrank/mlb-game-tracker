@@ -49,10 +49,23 @@
 }
 
 .player-card {
+  position: relative;
   border: 1px solid #d7deea;
   border-radius: 14px;
   padding: 18px;
   background: #f8fafc;
+}
+
+.place-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border-radius: 999px;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 3px 8px;
 }
 
 .player-header {
@@ -61,6 +74,7 @@
   align-items: baseline;
   gap: 12px;
   margin-bottom: 14px;
+  padding-top: 8px;
 }
 
 .player-header h2 {
